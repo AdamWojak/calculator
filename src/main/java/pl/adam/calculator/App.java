@@ -3,17 +3,19 @@ package pl.adam.calculator;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class App {
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, NoSuchFileException, NoSuchElementException {
 
 		System.out.println("Welcome to Calculator App.");
 
@@ -23,18 +25,17 @@ public class App {
 
 	}
 
-	public static List<Operation> readFromFile(String fileName) throws IOException {
-
-		List<Operation> listOfOperations = new LinkedList<>();
+	public static List<Operation> readFromFile(String fileName)
+			throws IOException, NoSuchFileException, NoSuchElementException {
 
 		Path path = Paths.get(fileName);
 
 		if (!(Files.exists(path))) {
-			System.out.println("Such file does not exist!");
-			System.out.println("The end of the program.");
-			Files.createFile(path);
+			// Files.createFile(path);
+			throw new NoSuchFileException("Such file does not exist! The end of the program.");
 
 		} else {
+			List<Operation> listOfOperations = new LinkedList<>();
 
 			System.out.println("Such file exist. Work in progress...");
 
@@ -46,6 +47,10 @@ public class App {
 			Pattern quitPattern = Pattern.compile("^apply\\s.*");
 			Matcher matcher;
 
+			if (scan.hasNextLine() == false) {
+				scan.close();
+				throw new NoSuchElementException("There is no text inside the file.");
+			}
 			do {
 				line = scan.nextLine();
 				String[] lineParts = line.split(" ");
@@ -57,15 +62,14 @@ public class App {
 			} while (!(matcher.find() == true));
 
 			scan.close();
-
+			return listOfOperations;
 		}
-		return listOfOperations;
+
 	}
 
 	public static void mathematicalOperations(List<Operation> listOfOperations) {
 
 		double number = listOfOperations.get(listOfOperations.size() - 1).getValue();
-		// System.out.println(number);
 
 		for (int i = 0; i < listOfOperations.size(); i++) {
 			String actualOperation = listOfOperations.get(i).getNameOfOperation();
